@@ -1,0 +1,88 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-clr: rgb(49, 49, 49);
+    --bg-accent: rgb(68, 68, 68);
+    --sec-clr: rgb(245, 238, 238);
+    --sec-accent: rgb(230, 229, 229);
+    --p1-clr: rgb(126, 103, 255);
+    --p1-accent: rgb(60, 65, 80);
+    --p2-clr: rgb(255, 73, 73);
+    --p2-accent: rgb(99, 64, 64);
+}
+
+div {
+    border: 1px solid red;
+}
+
+body {
+    background: var(--bg-clr);
+}
+
+.container {
+    --sidepanelwidth: 250px;
+    width: 100svw;
+    height: 100svh;
+    display: grid;
+    grid-template-columns: var(--sidepanelwidth) 1fr var(--sidepanelwidth);
+}
+
+.side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.player-name {
+    color: var(--sec-clr);
+    font-size: 3rem;
+}
+
+.player-name-input {
+    background: var(--bg-accent);
+    height: 2rem;
+    padding: 1rem;
+    color: var(--sec-clr);
+    box-shadow: none;
+    border-radius: 2rem;
+}
+
+.symbol-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+    gap: 0.3rem;
+}
+
+.symbol {
+    --dimension: 3rem;
+    height: var(--dimension);
+    width: var(--dimension);
+
+}
+
+.p1.symbol {
+    stroke: var(--p1-clr);
+    fill: var(--p1-accent);
+}
+
+.p2.symbol {
+    stroke: var(--p2-clr);
+    fill: var(--p2-accent);
+}
+
+.p1.side {
+    box-shadow: 0.2rem 0 var(--bg-accent);
+}
+
+.turn {
+    box-shadow: inset 0 0 0.5rem 0.2rem yellow;
+}

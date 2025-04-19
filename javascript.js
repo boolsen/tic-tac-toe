@@ -1,66 +1,42 @@
 const boardSize = 3;
 const rowForWIn = 3;
-
-//factory game
-function Game () {
-    const players = Players();
-    let playerTurnIdx = 0;
-
-    function createPlayers() {
-        console.log("set up creating players using player factory");
-        
-    }
-
-    return {board, players, playerTurnIdx}
-}
+let display;
+let game;
 
 //gameBoard module
-const GameBoard = (function (){    
-    function initializeGameBoard(){
+function GameBoard (){    
+    const gameBoard = (function() {
         const newBoard = Array(0);
         
         for (let i = 0; i < 3; i++) {
             let row = Array(3);
-            row.fill(null);
+            row.fill(Cell());
             newBoard.push(row);        
         }
         return newBoard;
-    }
-
-    const board = initializeGameBoard();
+    })();
 
     function resetGameBoard() {
-        while (board.length > 0) {
-            board.pop();
+        for (let i = 0; i < gameBoard.length; i++) {
+            for (let j = 0; j < gameBoard[i].length; j++) {
+                gameBoard[i][j] = null;
+            }
         }
         
     }
 
     function isCellEmpty(x, y){
-        console.log(board);
-        if (board[x][y] === null) {
+        if (gameBoard[x][y] === null) {
             return true;
         }
         return false;
-    }
-
-    function playCell(x,y,playerId) {
-        if (!isCellEmpty(x,y)) {
-            return;
-        }
-        
-        board[x][y] = playerId;
-
-        if (checkForVictory(x,y)) {
-            handleVictory(playerId);
-        }
     }
 
     function checkForVictory(x,y){
         // check diagonal if x + y = even
         const xArray = [];
         for (let i = 0; i < boardSize; i ++) {
-            xArray.push(board[x][i]);
+            xArray.push(gameBoard[x][i]);
         }
         if (checkArrayForWin(xArray)) {
             return true;
@@ -68,7 +44,7 @@ const GameBoard = (function (){
 
         const yArray = [];
         for (let i = 0; i < boardSize; i ++) {
-            xArray.push(board[i][y]);
+            yArray.push(gameBoard[i][y]);
         }
         if (checkArrayForWin(yArray)) {
             return true;
@@ -77,7 +53,7 @@ const GameBoard = (function (){
         if (x + y === boardSize) {
             const posDiagonalArray = [];
             for (let i = 0; i < boardSize; i++) {
-                posDiagonalArray.push(board[boardSize - 1 - i][i]);
+                posDiagonalArray.push(gameBoard[boardSize - 1 - i][i]);
             }
             if (checkArrayForWin(posDiagonalArray)) {
                 return true;
@@ -87,12 +63,14 @@ const GameBoard = (function (){
         if (x === y) {
             const negDiagonalArray = [];
             for (let i = 0; i < boardSize; i++) {
-                negDiagonalArray.push(board[i][i]);
+                negDiagonalArray.push(gameBoard[i][i]);
             }
             if (checkArrayForWin(negDiagonalArray)) {
                 return true;
             }
         }
+
+        return false;
     }
 
     function checkArrayForWin (array) {
@@ -104,15 +82,148 @@ const GameBoard = (function (){
         return true;
     }
 
-    function handleVictory(plyerId) {
-        console.log("write function to handle victory");
+    function printBoard () {
+        let text = '';
+        for (let i = 0; i < gameBoard.length; i++){
+            for (let j = 0; j < gameBoard.length; j++) {
+                let symbol = '-';
+                if (gameBoard[i][j]) {
+                    symbol = gameBoard[i][j].symbol;
+                }
+                text += symbol;
+            }
+            text += ' \n';
+        }
+        console.log(text);
     }
 
-    return {resetGameBoard,playCell}
+    function Cell() {
+        let element = null;
+        let player = null;
 
-}) ();
+        return {element, player};
+    }
 
-function Player(name, id) {
+    function setCellPlayer(x,y,player) {
+        gameBoard[x][y].player = player;        
+        return checkForVictory(x,y);
+    }
+
+    function setCellElement(x,y,element) {
+        gameBoard[x][y].element = element;   
+    }
+
+    function symbolsOnBoard() {
+        symbols = [];
+        for (let i = 0; i < boardSize;  i++) {
+            symbols.push([]);
+            for (let j = 0; j < boardSize; j++) {
+                symbols[i][j] = gameBoard.symbol;
+            }
+        }
+        return symbols;
+    }
+
+    return {resetGameBoard, isCellEmpty, printBoard, setCellPlayer, symbolsOnBoard, setCellElement}
+
+};
+
+//factory game
+function Game () {
+    const players = [];
+    let playerTurnIdx = 0;
+
+    const board = GameBoard();
+    const displayContller = DisplayController();
+
+    function createPlayers(player1name, player1symbol, player2name, player2symbol) {
+        players[0] = Player(player1name, player1symbol, 0);
+        players[1] = Player(player2name, player2symbol, 1);    
+    }
+
+    function Player(name, playerSymbol, playerTurnIdx) {
+        let symbol = playerSymbol;  // allow players to choose from a set    
+        let turnIdx = playerTurnIdx;
+    
+        return {name, symbol, turnIdx};
+    }
+
+    
+    let turnCounter = 0; //to determine turn: turncounter // 2 -> player idx
+
+    function playCell(x,y) {
+        let player = players[determineTurn()];
+        turnCounter++;
+
+        if (!board.isCellEmpty(x,y, board)) {
+            return;
+        }
         
-    return {name, id};
+        let victoryCheck = board.setCellPlayer(x, y, player)
+        
+        if (victoryCheck){
+            handleVictory(player);
+        }
+        
+        board.printBoard();
+    }
+
+    function determineTurn(turnCounter) {
+        let activePlayerIdx = turnCounter % 2;
+        return activePlayerIdx;
+    }
+
+    function handleVictory(player) {
+        console.log(`Player ${player.name} wins!`);
+    }
+
+    return {players, playerTurnIdx, determineTurn, playCell, createPlayers, board}
+    
 }
+
+
+
+
+function DisplayController () {
+
+    const p1nameInputElement = document.querySelector("#p1-name");
+    const p1symbolElement = document.querySelector(".symbol.p1");
+    const p2nameInputElement = document.querySelector("#p2-name");
+
+    // TODO: Find selected symbol
+    const p2symbolElement = document.querySelector(".symbol.p2");
+    const boardContainerElement = document.querySelector(".game-board");
+    
+    function getInputValues() {
+        const player1name = p1nameInputElement.value;
+        const player1symbol = p1symbolElement.value;
+        const player2name = p2nameInputElement.value;
+        const player2symbol = p2symbolElement.value; // Insert as html into new cell
+
+        return {player1name, player1symbol, player2name, player2symbol};
+    }
+
+    function drawBoard(boardSymbolsArray, setCellElement) {
+        boardContainerElement.style.gridTemplateColumns = boardSize;
+        boardContainerElement.style.gridTemplateRows = boardSize;
+
+        for (let i = 0; i < boardSize; i++) {
+            for (let j = 0; j < boardSize; j++) {
+                let cell = document.createElement("div");
+                cell.onclick = () => game.playCell(i,j);
+                cell.innerText = boardSymbolsArray[i][j];
+                boardContainerElement.append(cell);
+                setCellElement(i,j, cell);
+            }
+        }    
+    }
+
+    return {drawBoard, getInputValues}
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    //instantiate displaycontroller
+    window.display = displayController();
+    window.game1 = display.newGame();
+    window.abc = "test";
+});
