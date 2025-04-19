@@ -181,26 +181,33 @@ function Game () {
     
 }
 
-
-
-
 function DisplayController () {
 
     const p1nameInputElement = document.querySelector("#p1-name");
-    const p1symbolElement = document.querySelector(".symbol.p1");
+    const p1symbolElement = document.querySelector(".p1.symbol-container"); // TODO: Find selected symbol
     const p2nameInputElement = document.querySelector("#p2-name");
-
-    // TODO: Find selected symbol
-    const p2symbolElement = document.querySelector(".symbol.p2");
+    const p2symbolElement = document.querySelector(".p2.symbol-container"); // TODO: Find selected symbol
     const boardContainerElement = document.querySelector(".game-board");
     
     function getInputValues() {
         const player1name = p1nameInputElement.value;
-        const player1symbol = p1symbolElement.value;
         const player2name = p2nameInputElement.value;
-        const player2symbol = p2symbolElement.value; // Insert as html into new cell
+
+        // Symbol elements are parent containers, need to find .selected child in container
+        const player1symbolElement = p1symbolElement.querySelectorAll(":scope > .selected");
+        const player2symbolElement = p2symbolElement.querySelectorAll(":scope > .selected");
 
         return {player1name, player1symbol, player2name, player2symbol};
+    }
+
+    function selectSymbol(element) {
+        const selectClass = "selected";
+        const parent = element.parent;
+        const children = parent.querySelectorAll(":scope > .selected");
+        children.array.forEach(child => {
+            child.classList.toggle(selectClass);
+        });
+        element.classList.toggle(selectClass);
     }
 
     function drawBoard(boardSymbolsArray, setCellElement) {
@@ -217,7 +224,6 @@ function DisplayController () {
             }
         }    
     }
-
     return {drawBoard, getInputValues}
 }
 
