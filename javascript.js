@@ -24,6 +24,7 @@ const game = (function Game () {
         
         gameActive = true;
 
+        displayController.setFirstTurn();
         displayController.setUpInputListeners(players);
         displayController.drawBoard(board);
         
@@ -40,14 +41,15 @@ const game = (function Game () {
     function playCell(x,y) {
         if (!gameActive) {
             alert("start a new game first, game is not active");
-        }
-
+        }        
+        
         let player = players[determineTurn()];
         turnCounter++;
-
+        
         if (!board.isCellEmpty(x,y, board)) {
             return;
         }
+        displayController.changeTurn(turnCounter);
         
         let victoryCheck = board.setCellPlayer(x, y, player)
         
@@ -55,28 +57,28 @@ const game = (function Game () {
             handleVictory(player);
         }
         
-        board.setCellPlayer(player);
         displayController.drawBoard(board);
-        board.printBoard();
     }
 
     function changeSymbol(element) {
+        let player;
+        
         if (element.classList.contains("p1")) {
-            const player = players[0];
-        }
-        else {
-            const player = players[1];
-        }
+            player = players[0];
+        }else {
+            player = players[1];
+        }        
         player.symbol = element.innerHTML;
     }
 
-    function determineTurn(turnCounter) {
-        let activePlayerIdx = turnCounter % 2;
+    function determineTurn() {
+        let activePlayerIdx = turnCounter % 2;        
         return activePlayerIdx;
     }
 
     function handleVictory(player) {
         console.log(`Player ${player.name} wins!`);
+        gameActive = false;
     }
 
     function selectSymbol(element) {
@@ -102,8 +104,7 @@ function GameBoard (){
         const newBoard = Array(0);
         
         for (let i = 0; i < 3; i++) {
-            let row = Array(3);
-            row.fill(Cell());
+            let row = [Cell(),Cell(),Cell()];
             newBoard.push(row);        
         }
         return newBoard;
@@ -174,6 +175,17 @@ function GameBoard (){
     }
 
     function checkArrayForWin (array) {
+        let emptyCheck = false;
+        array.forEach(element => {
+            if (typeof(element.player) === 'undefined' || element.player === null){
+                emptyCheck = true;
+            }
+        });
+
+        if(emptyCheck){
+            return false;
+        }
+
         for (let i = 1; i < array.length; i++) {
             if (array[i].player.name != array[i - 1].player.name) {
                 return false;
@@ -187,8 +199,8 @@ function GameBoard (){
         for (let i = 0; i < gameBoard.length; i++){
             for (let j = 0; j < gameBoard.length; j++) {
                 let symbol = '-';
-                if (gameBoard[i][j]) {
-                    symbol = gameBoard[i][j].symbol;
+                if (gameBoard[i][j].player) {
+                    symbol = 'x';
                 }
                 text += symbol;
             }
@@ -206,10 +218,11 @@ function GameBoard (){
 
     function setCellPlayer(x,y,player) {
         gameBoard[x][y].player = player;        
-        return checkForVictory(x,y);
+        let check = checkForVictory(x,y);
+        return check;
     }
 
-    function setCellElement(x,y,element) {
+    function setCellElement(x,y,element) {      
         gameBoard[x][y].element = element;   
     }
 
@@ -240,6 +253,15 @@ function DisplayController () {
     } else {
         getInputReferences();
     }
+
+    function setFirstTurn(){
+        inputElements["p1sidepanel"].classList.add("player-turn");
+    }
+
+    function changeTurn(){
+        inputElements["p1sidepanel"].classList.toggle("player-turn");
+        inputElements["p2sidepanel"].classList.toggle("player-turn");
+    }
     
     function getInputReferences() {
         const p1name = document.querySelector("#p1-name");
@@ -247,7 +269,9 @@ function DisplayController () {
         const p2name = document.querySelector("#p2-name");
         const p2symbol = document.querySelector(".p2.symbol-container"); // TODO: Find selected symbol
         const boardContainer = document.querySelector(".game-board"); 
-        inputElements = {p1name, p1symbol, p2name, p2symbol, boardContainer};    
+        const p1sidepanel = document.querySelector(".p1.side.left");
+        const p2sidepanel = document.querySelector(".p2.side.right");
+        inputElements = {p1name, p1symbol, p2name, p2symbol, boardContainer, p1sidepanel, p2sidepanel};    
     }
 
     function inputsValid() {
@@ -269,12 +293,10 @@ function DisplayController () {
     }
 
     function setUpInputListeners(players) {
-        inputElements["p1name"].addEventListener("input", debounce((event) => {
-            console.log("event fired");            
+        inputElements["p1name"].addEventListener("input", debounce((event) => {         
             players[0].name = event.target.value;
         }, 500));
-        inputElements["p2name"].addEventListener("input", debounce((event) => {
-            console.log("event fired");            
+        inputElements["p2name"].addEventListener("input", debounce((event) => {     
             players[1].name = event.target.value;
         }, 500));
     }
@@ -286,15 +308,13 @@ function DisplayController () {
         // Symbol elements are parent containers, need to find .selected child in container
         if (!inputElements["p1symbol"].querySelector(":scope > .selected")) {
             player1symbol = null;
-        }
-        else {
-            player1symbol = inputElements["p1symbol"].querySelector(":scope > .selected").outerHTML
+        }else {
+            player1symbol = inputElements["p1symbol"].querySelector(":scope > .selected").innerHTML;
         }
         if (!inputElements["p2symbol"].querySelector(":scope > .selected")) {
             player2symbol = null;
-        }
-        else {
-            player2symbol = inputElements["p2symbol"].querySelector(":scope > .selected").outerHTML
+        }else {
+            player2symbol = inputElements["p2symbol"].querySelector(":scope > .selected").innerHTML;
         }
         
         return [player1name, player1symbol, player2name, player2symbol];
@@ -302,17 +322,20 @@ function DisplayController () {
     
     function selectSymbol(element) {
         const selectClass = "selected";
-        const parent = element.parent;
+        
+        const parent = element.parentElement;
         const children = parent.querySelectorAll(":scope > .selected");
-        children.array.forEach(child => {
-            child.classList.toggle(selectClass);
-        });
+        for (let i = 0; i < children.length; i++) {
+            children[i].classList.toggle(selectClass);
+        };
         element.classList.toggle(selectClass);
     }
     
     function drawBoard(board) {
-        inputElements["boardContainer"].style.gridTemplateColumns = boardSize;
-        inputElements["boardContainer"].style.gridTemplateRows = boardSize;
+        inputElements["boardContainer"].innerHTML = '';
+        inputElements["boardContainer"].style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+        inputElements["boardContainer"].style.gridTemplateRows = ` repeat(${boardSize}, 1fr)`;
+        inputElements["boardContainer"].style.setProperty('--board-size', boardSize);
         
         for (let i = 0; i < boardSize; i++) {
             for (let j = 0; j < boardSize; j++) {
@@ -325,5 +348,5 @@ function DisplayController () {
             }
         }    
     }
-    return {drawBoard, getInputValues, selectSymbol, inputsValid, inputElements, setUpInputListeners}
+    return {drawBoard, getInputValues, selectSymbol, inputsValid, setUpInputListeners, changeTurn, setFirstTurn}
 }

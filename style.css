@@ -5,7 +5,8 @@
 }
 
 :root {
-    --bg-clr: rgb(49, 49, 49);
+    --bg-clr: hsl(0, 0.0%,19.2%);
+    --bg-clr-side: hsl(0, 0%, 16%);
     --bg-accent: rgb(68, 68, 68);
     --sec-clr: rgb(245, 238, 238);
     --sec-accent: rgb(230, 229, 229);
@@ -13,10 +14,6 @@
     --p1-accent: rgb(60, 65, 80);
     --p2-clr: rgb(255, 73, 73);
     --p2-accent: rgb(99, 64, 64);
-}
-
-div {
-    border: 1px solid red;
 }
 
 body {
@@ -38,11 +35,13 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
+    background: var(--bg-clr-side);
+    padding: 1rem;
 }
 
 .player-name {
     color: var(--sec-clr);
-    font-size: 3rem;
+    font-size: 2.7rem;
 }
 
 .player-name-input {
@@ -52,6 +51,8 @@ body {
     color: var(--sec-clr);
     box-shadow: none;
     border-radius: 2rem;
+    font-size: 1.2rem;
+    width: 90%;
 }
 
 .symbol-container {
@@ -85,17 +86,88 @@ svg.p2.symbol {
 }
 
 .p1.side {
-    box-shadow: 0.2rem 0 var(--bg-accent);
+    box-shadow: 0.1rem 0px 0.5rem var(--bg-accent);
+    &.player-turn{
+        box-shadow: inset 0px 0px 0.4rem 0.4rem var(--p1-clr),
+        0.1rem 0px 0.5rem var(--bg-accent);
+    }
 }
-
-.turn {
-    box-shadow: inset 0 0 0.5rem 0.2rem yellow;
+.p2.side {
+    box-shadow: -0.1rem 0px 0.5rem var(--bg-accent);
+    &.player-turn{
+        box-shadow: inset 0px 0px 0.4rem 0.4rem var(--p2-clr),
+        -0.1rem 0px 0.5rem var(--bg-accent);
+    }
 }
 
 .symbol.selected {
-    border: 3px solid lime;
+    background: rgb(34, 34, 34);
+    .p1 {
+        border: 3px solid var(--p1-clr);
+        border-radius: 20%;
+    }
+    .p2 {
+        border: 3px solid var(--p2-clr);
+        border-radius: 20%;
+    }
 }
 
 div.symbol {
     padding: 0.1rem;
+}
+
+.game-board {
+    width: 100%;
+    aspect-ratio: 1;
+    gap: 0;
+    display: grid;
+    .cell {
+        width: 100%;
+        aspect-ratio: 1;
+        border: 3px solid var(--bg-clr-side);
+        background: var(--bg-accent);
+        padding: 15%;
+        display: grid;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.main {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 5rem auto;
+    grid-template-columns: 1fr;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+}
+
+.main-header{
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    .new-game {
+        padding: 1rem;
+        background: var(--bg-accent);
+        color: var(--sec-clr);
+        font-size: 2rem;
+        width: fit-content;
+        border-radius: 1rem 1rem 1rem 1rem;
+    }
+}
+
+.cell > div {
+    width: 100%;
+    height: 100%;
+    background: none !important;
+}
+
+.cell > div > svg {
+    width: 100%;
+    height: 100%;
+    border: none !important;
 }
