@@ -1,7 +1,100 @@
 const boardSize = 3;
 const rowForWIn = 3;
 let display;
-let game;
+
+const game = (function Game () {
+    const players = [Player(), Player()];
+    let gameActive = false;
+    let turnCounter = 0; //to determine turn: turncounter // 2 -> player idx
+
+    const board = GameBoard();
+    const displayController = DisplayController();
+
+    function newGame() {
+        [p1name, p1symbol, p2name, p2symbol] = displayController.getInputValues();
+        if (p1name.length === 0 || p1symbol.length === 0 || p2name.length === 0 || p2symbol.length === 0) {
+            alert("Not all inputs valid");
+            return;
+        }
+
+        players[0].name = p1name;
+        players[0].symbol = p1symbol;
+        players[1].name = p2name;
+        players[1].symbol = p2symbol;   
+        
+        gameActive = true;
+
+        displayController.setUpInputListeners(players);
+        displayController.drawBoard(board);
+        
+    }
+
+    function Player() {
+        let name = null;
+        let symbol = null;  
+        let turnIdx = null;
+    
+        return {name, symbol};
+    }
+
+    function playCell(x,y) {
+        if (!gameActive) {
+            alert("start a new game first, game is not active");
+        }
+
+        let player = players[determineTurn()];
+        turnCounter++;
+
+        if (!board.isCellEmpty(x,y, board)) {
+            return;
+        }
+        
+        let victoryCheck = board.setCellPlayer(x, y, player)
+        
+        if (victoryCheck){
+            handleVictory(player);
+        }
+        
+        board.setCellPlayer(player);
+        displayController.drawBoard(board);
+        board.printBoard();
+    }
+
+    function changeSymbol(element) {
+        if (element.classList.contains("p1")) {
+            const player = players[0];
+        }
+        else {
+            const player = players[1];
+        }
+        player.symbol = element.innerHTML;
+    }
+
+    function determineTurn(turnCounter) {
+        let activePlayerIdx = turnCounter % 2;
+        return activePlayerIdx;
+    }
+
+    function handleVictory(player) {
+        console.log(`Player ${player.name} wins!`);
+    }
+
+    function selectSymbol(element) {
+        if (element.classList.contains("p1")) {
+            players[0].symbol = element.innerHTML;
+        }
+        else {
+            players[1].symbol = element.innerHTML;
+
+        }
+
+        displayController.selectSymbol(element);
+        changeSymbol(element);
+    }
+
+    return {newGame, playCell, selectSymbol}
+    
+}) ();
 
 //gameBoard module
 function GameBoard (){    
@@ -16,17 +109,24 @@ function GameBoard (){
         return newBoard;
     })();
 
+    function getCellSymbol(x,y) {        
+        if (gameBoard[x][y].player != null && gameBoard[x][y].player.symbol != null) {
+            return gameBoard[x][y].player.symbol;
+        }
+        return null;
+    }
+
     function resetGameBoard() {
         for (let i = 0; i < gameBoard.length; i++) {
             for (let j = 0; j < gameBoard[i].length; j++) {
-                gameBoard[i][j] = null;
+                gameBoard[i][j] = Cell();
             }
         }
         
     }
 
     function isCellEmpty(x, y){
-        if (gameBoard[x][y] === null) {
+        if (gameBoard[x][y].player === null) {
             return true;
         }
         return false;
@@ -75,7 +175,7 @@ function GameBoard (){
 
     function checkArrayForWin (array) {
         for (let i = 1; i < array.length; i++) {
-            if (array[i] != array[i - 1]) {
+            if (array[i].player.name != array[i - 1].player.name) {
                 return false;
             }
         }
@@ -124,82 +224,82 @@ function GameBoard (){
         return symbols;
     }
 
-    return {resetGameBoard, isCellEmpty, printBoard, setCellPlayer, symbolsOnBoard, setCellElement}
+    return {resetGameBoard, isCellEmpty, printBoard, setCellPlayer, symbolsOnBoard, setCellElement, getCellSymbol}
 
 };
 
 //factory game
-function Game () {
-    const players = [];
-    let playerTurnIdx = 0;
-
-    const board = GameBoard();
-    const displayContller = DisplayController();
-
-    function createPlayers(player1name, player1symbol, player2name, player2symbol) {
-        players[0] = Player(player1name, player1symbol, 0);
-        players[1] = Player(player2name, player2symbol, 1);    
-    }
-
-    function Player(name, playerSymbol, playerTurnIdx) {
-        let symbol = playerSymbol;  // allow players to choose from a set    
-        let turnIdx = playerTurnIdx;
-    
-        return {name, symbol, turnIdx};
-    }
-
-    
-    let turnCounter = 0; //to determine turn: turncounter // 2 -> player idx
-
-    function playCell(x,y) {
-        let player = players[determineTurn()];
-        turnCounter++;
-
-        if (!board.isCellEmpty(x,y, board)) {
-            return;
-        }
-        
-        let victoryCheck = board.setCellPlayer(x, y, player)
-        
-        if (victoryCheck){
-            handleVictory(player);
-        }
-        
-        board.printBoard();
-    }
-
-    function determineTurn(turnCounter) {
-        let activePlayerIdx = turnCounter % 2;
-        return activePlayerIdx;
-    }
-
-    function handleVictory(player) {
-        console.log(`Player ${player.name} wins!`);
-    }
-
-    return {players, playerTurnIdx, determineTurn, playCell, createPlayers, board}
-    
-}
 
 function DisplayController () {
+    let inputElements = {};
 
-    const p1nameInputElement = document.querySelector("#p1-name");
-    const p1symbolElement = document.querySelector(".p1.symbol-container"); // TODO: Find selected symbol
-    const p2nameInputElement = document.querySelector("#p2-name");
-    const p2symbolElement = document.querySelector(".p2.symbol-container"); // TODO: Find selected symbol
-    const boardContainerElement = document.querySelector(".game-board");
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+            getInputReferences();
+        })
+    } else {
+        getInputReferences();
+    }
     
-    function getInputValues() {
-        const player1name = p1nameInputElement.value;
-        const player2name = p2nameInputElement.value;
-
-        // Symbol elements are parent containers, need to find .selected child in container
-        const player1symbolElement = p1symbolElement.querySelectorAll(":scope > .selected");
-        const player2symbolElement = p2symbolElement.querySelectorAll(":scope > .selected");
-
-        return {player1name, player1symbol, player2name, player2symbol};
+    function getInputReferences() {
+        const p1name = document.querySelector("#p1-name");
+        const p1symbol = document.querySelector(".p1.symbol-container"); // TODO: Find selected symbol
+        const p2name = document.querySelector("#p2-name");
+        const p2symbol = document.querySelector(".p2.symbol-container"); // TODO: Find selected symbol
+        const boardContainer = document.querySelector(".game-board"); 
+        inputElements = {p1name, p1symbol, p2name, p2symbol, boardContainer};    
     }
 
+    function inputsValid() {
+        const inputs = getInputValues();
+        for (input of inputs) {
+            if (!input) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function debounce(callback, delay) {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => callback(...args), delay);
+        };
+    }
+
+    function setUpInputListeners(players) {
+        inputElements["p1name"].addEventListener("input", debounce((event) => {
+            console.log("event fired");            
+            players[0].name = event.target.value;
+        }, 500));
+        inputElements["p2name"].addEventListener("input", debounce((event) => {
+            console.log("event fired");            
+            players[1].name = event.target.value;
+        }, 500));
+    }
+    
+    function getInputValues() {
+        const player1name = inputElements["p1name"].value;
+        const player2name = inputElements["p2name"].value;
+        
+        // Symbol elements are parent containers, need to find .selected child in container
+        if (!inputElements["p1symbol"].querySelector(":scope > .selected")) {
+            player1symbol = null;
+        }
+        else {
+            player1symbol = inputElements["p1symbol"].querySelector(":scope > .selected").outerHTML
+        }
+        if (!inputElements["p2symbol"].querySelector(":scope > .selected")) {
+            player2symbol = null;
+        }
+        else {
+            player2symbol = inputElements["p2symbol"].querySelector(":scope > .selected").outerHTML
+        }
+        
+        return [player1name, player1symbol, player2name, player2symbol];
+    }
+    
     function selectSymbol(element) {
         const selectClass = "selected";
         const parent = element.parent;
@@ -209,27 +309,21 @@ function DisplayController () {
         });
         element.classList.toggle(selectClass);
     }
-
-    function drawBoard(boardSymbolsArray, setCellElement) {
-        boardContainerElement.style.gridTemplateColumns = boardSize;
-        boardContainerElement.style.gridTemplateRows = boardSize;
-
+    
+    function drawBoard(board) {
+        inputElements["boardContainer"].style.gridTemplateColumns = boardSize;
+        inputElements["boardContainer"].style.gridTemplateRows = boardSize;
+        
         for (let i = 0; i < boardSize; i++) {
             for (let j = 0; j < boardSize; j++) {
                 let cell = document.createElement("div");
                 cell.onclick = () => game.playCell(i,j);
-                cell.innerText = boardSymbolsArray[i][j];
-                boardContainerElement.append(cell);
-                setCellElement(i,j, cell);
+                cell.classList.add("cell");
+                cell.innerHTML = board.getCellSymbol(i,j);
+                inputElements["boardContainer"].append(cell);
+                board.setCellElement(i,j, cell);
             }
         }    
     }
-    return {drawBoard, getInputValues}
+    return {drawBoard, getInputValues, selectSymbol, inputsValid, inputElements, setUpInputListeners}
 }
-
-document.addEventListener('DOMContentLoaded', function () {
-    //instantiate displaycontroller
-    window.display = displayController();
-    window.game1 = display.newGame();
-    window.abc = "test";
-});

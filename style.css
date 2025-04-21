@@ -62,19 +62,24 @@ body {
     gap: 0.3rem;
 }
 
-.symbol {
+div.symbol {
+    width: auto;
+    height: auto;
+}
+
+svg.symbol {
     --dimension: 3rem;
     height: var(--dimension);
     width: var(--dimension);
 
 }
 
-.p1.symbol {
+svg.p1.symbol {
     stroke: var(--p1-clr);
     fill: var(--p1-accent);
 }
 
-.p2.symbol {
+svg.p2.symbol {
     stroke: var(--p2-clr);
     fill: var(--p2-accent);
 }
@@ -85,4 +90,12 @@ body {
 
 .turn {
     box-shadow: inset 0 0 0.5rem 0.2rem yellow;
+}
+
+.symbol.selected {
+    border: 3px solid lime;
+}
+
+div.symbol {
+    padding: 0.1rem;
 }
