@@ -19,7 +19,7 @@
                 <div onclick="game.selectSymbol(this)" class="symbol p1">
                     <svg class="symbol p1" id="smile" xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-smile"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
                 </div>
-                <div onclick="game.selectSymbol(this)" class="symbol p1">
+                <div onclick="game.selectSymbol(this)" class="symbo p1">
                     <svg class="symbol p1" id="square" xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-square"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                 </div>
                 <div onclick="game.selectSymbol(this)" class="symbol p1">
@@ -36,12 +36,13 @@
         <div class="main">
             <div class="main-header">
                 <button class="new-game" onclick="game.newGame()">New game</button>
+                <h2 class="victory-text"></h2>
             </div>
             <div class="game-board"></div>
         </div>
         <div class="p2 side right">
-            <h2 class="player-name">Player Two</h2>
-            <input type="text" class="player-name-input" id="p2-name"> 
+            <h2 class="player-name p2">Player Two</h2>
+            <input type="text" class="player-name-input p2" id="p2-name"> 
             <div class="symbol-container p2">
                 <div onclick="game.selectSymbol(this)" class="symbol p2">
                     <svg class="symbol p2" id="cicle" xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle">

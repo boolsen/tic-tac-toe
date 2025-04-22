@@ -23,6 +23,10 @@ const game = (function Game () {
         players[1].symbol = p2symbol;   
         
         gameActive = true;
+        turnCounter = 0;
+
+        board.resetGameBoard();
+        displayController.setWinnerText();
 
         displayController.setFirstTurn();
         displayController.setUpInputListeners(players);
@@ -41,19 +45,21 @@ const game = (function Game () {
     function playCell(x,y) {
         if (!gameActive) {
             alert("start a new game first, game is not active");
+            return;
         }        
         
         let player = players[determineTurn()];
-        turnCounter++;
         
         if (!board.isCellEmpty(x,y, board)) {
             return;
         }
+        turnCounter++;
         displayController.changeTurn(turnCounter);
         
         let victoryCheck = board.setCellPlayer(x, y, player)
         
         if (victoryCheck){
+            board.printBoard();
             handleVictory(player);
         }
         
@@ -77,7 +83,7 @@ const game = (function Game () {
     }
 
     function handleVictory(player) {
-        console.log(`Player ${player.name} wins!`);
+        displayController.setWinnerText(player.name);
         gameActive = false;
     }
 
@@ -92,6 +98,7 @@ const game = (function Game () {
 
         displayController.selectSymbol(element);
         changeSymbol(element);
+        displayController.drawBoard(board);
     }
 
     return {newGame, playCell, selectSymbol}
@@ -139,10 +146,10 @@ function GameBoard (){
         for (let i = 0; i < boardSize; i ++) {
             xArray.push(gameBoard[x][i]);
         }
-        if (checkArrayForWin(xArray)) {
+        if (checkArrayForWin(xArray)) {          
             return true;
         }
-
+        
         const yArray = [];
         for (let i = 0; i < boardSize; i ++) {
             yArray.push(gameBoard[i][y]);
@@ -157,6 +164,8 @@ function GameBoard (){
                 posDiagonalArray.push(gameBoard[boardSize - 1 - i][i]);
             }
             if (checkArrayForWin(posDiagonalArray)) {
+                console.log("test");
+
                 return true;
             }
         }
@@ -271,7 +280,8 @@ function DisplayController () {
         const boardContainer = document.querySelector(".game-board"); 
         const p1sidepanel = document.querySelector(".p1.side.left");
         const p2sidepanel = document.querySelector(".p2.side.right");
-        inputElements = {p1name, p1symbol, p2name, p2symbol, boardContainer, p1sidepanel, p2sidepanel};    
+        const victoryText = document.querySelector(".victory-text");
+        inputElements = {p1name, p1symbol, p2name, p2symbol, boardContainer, p1sidepanel, p2sidepanel, victoryText};    
     }
 
     function inputsValid() {
@@ -319,6 +329,14 @@ function DisplayController () {
         
         return [player1name, player1symbol, player2name, player2symbol];
     }
+
+    function setWinnerText(name){
+        if (arguments.length === 0) {
+            inputElements["victoryText"].textContent = '';
+            return;
+        }
+        inputElements["victoryText"].textContent = `${name} wins!!!`
+    }
     
     function selectSymbol(element) {
         const selectClass = "selected";
@@ -333,7 +351,7 @@ function DisplayController () {
     
     function drawBoard(board) {
         inputElements["boardContainer"].innerHTML = '';
-        inputElements["boardContainer"].style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+        inputElements["boardContainer"].style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;        
         inputElements["boardContainer"].style.gridTemplateRows = ` repeat(${boardSize}, 1fr)`;
         inputElements["boardContainer"].style.setProperty('--board-size', boardSize);
         
@@ -348,5 +366,5 @@ function DisplayController () {
             }
         }    
     }
-    return {drawBoard, getInputValues, selectSymbol, inputsValid, setUpInputListeners, changeTurn, setFirstTurn}
+    return {drawBoard, getInputValues, selectSymbol, inputsValid, setUpInputListeners, changeTurn, setFirstTurn, setWinnerText}
 }
